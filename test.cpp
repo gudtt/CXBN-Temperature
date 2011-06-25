@@ -20,6 +20,7 @@
 #include <tchar.h>
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "Serial.h"
 
@@ -30,7 +31,7 @@
 
 enum { EOF_Char = 27 };
 
-int ShowError (LONG lError, LPCTSTR lptszMessage)
+/*int ShowError (LONG lError, LPCTSTR lptszMessage)
 {
 	// Generate a message text
 	TCHAR tszMessage[256];
@@ -39,7 +40,7 @@ int ShowError (LONG lError, LPCTSTR lptszMessage)
 	// Display message-box and return with an error-code
 	::MessageBox(0,tszMessage,_T("Listener"), MB_ICONSTOP|MB_OK);
 	return 1;
-}
+}*/
 
 int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 {
@@ -50,13 +51,13 @@ int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 
     // Attempt to open the serial port (COM1)
     lLastError = serial.Open(_T("COM4"),0,0,false);
-	if (lLastError != ERROR_SUCCESS)
-		return ::ShowError(serial.GetLastError(), _T("Unable to open COM-port"));
+	/*if (lLastError != ERROR_SUCCESS)
+		return ::ShowError(serial.GetLastError(), _T("Unable to open COM-port"));*/
 
     // Setup the serial port (9600,8N1, which is the default setting)
     lLastError = serial.Setup(CSerial::EBaud115200,CSerial::EData8,CSerial::EParNone,CSerial::EStop1);
-	if (lLastError != ERROR_SUCCESS)
-		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port setting"));
+	/*if (lLastError != ERROR_SUCCESS)
+		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port setting"));*/
 
     // Register only for the receive event
     lLastError = serial.SetMask(CSerial::EEventBreak |
@@ -66,15 +67,15 @@ int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 								CSerial::EEventRing  |
 								CSerial::EEventRLSD  |
 								CSerial::EEventRecv);
-	if (lLastError != ERROR_SUCCESS)
-		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port event mask"));
+	/*if (lLastError != ERROR_SUCCESS)
+		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port event mask"));*/
 
 	// Use 'non-blocking' reads, because we don't know how many bytes
 	// will be received. This is normally the most convenient mode
 	// (and also the default mode for reading data).
     lLastError = serial.SetupReadTimeouts(CSerial::EReadTimeoutNonblocking);
-	if (lLastError != ERROR_SUCCESS)
-		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port read timeout."));
+	/*if (lLastError != ERROR_SUCCESS)
+		return ::ShowError(serial.GetLastError(), _T("Unable to set COM-port read timeout."));*/
 
     // Keep reading data, until an EOF (CTRL-Z) has been received
 	bool fContinue = true;
@@ -96,14 +97,14 @@ int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 
 		// Wait for an event
 		lLastError = serial.WaitEvent();
-		if (lLastError != ERROR_SUCCESS)
-			return ::ShowError(serial.GetLastError(), _T("Unable to wait for a COM-port event."));
+		/*if (lLastError != ERROR_SUCCESS)
+			return ::ShowError(serial.GetLastError(), _T("Unable to wait for a COM-port event."));*/
 
 		// Save event
 		const CSerial::EEvent eEvent = serial.GetEventType();
 
 		// Handle break event
-		if (eEvent & CSerial::EEventBreak)
+		/*if (eEvent & CSerial::EEventBreak)
 		{
 			printf("\n### BREAK received ###\n");
 		}
@@ -149,7 +150,7 @@ int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 		if (eEvent & CSerial::EEventRLSD)
 		{
 			printf("\n### RLSD/CD %s ###\n", serial.GetRLSD()?"on":"off");
-		}
+		}*/
 
 		// Handle data receive event
 		if (eEvent & CSerial::EEventRecv)
@@ -161,8 +162,10 @@ int __cdecl _tmain (int /*argc*/, char** /*argv*/)
 			{
 				// Read data from the COM-port
 				lLastError = serial.Read(szBuffer,sizeof(szBuffer)-1,&dwBytesRead);
-				if (lLastError != ERROR_SUCCESS)
-					return ::ShowError(serial.GetLastError(), _T("Unable to read from COM-port."));
+				if (lLastError != ERROR_SUCCESS) {
+					printf("Unable to read from COM-port.\n");
+					exit(EXIT_FAILURE); 
+				}
 
 				if (dwBytesRead > 0)
 				{
